@@ -84,16 +84,25 @@ var FoodView = Backbone.View.extend({
 		return this;
 	},
 	showName: function(e) {
-		nutriDataView.$el.append(e.currentTarget.innerHTML);
+		this.model.trigger('selected', this.model);
+		//nutriDataView.$el.append(e.currentTarget.innerHTML);
+		//console.log('item clicked', e.currentTarget.innerHTML);
+		//var foodDataView = new FoodNutriDataView({nameAndNo: e.currentTarget.innerHTML});
+		var foodDataView = new FoodNutriDataView({nameAndNo:e.currentTarget.innerHTML});
+		//foodDataView.nameAndNo = e.currentTarget.innerHTML;
 	}
 });
 
 var FoodListView = Backbone.View.extend({
 	//tagName: 'ul',
 	el: $('#search-result'),
+	events: {
+		'change': 'changeHandler',
+	},
 	initialize: function() {
 		//this.listenTo(this.colleciton, 'onFetch', this.render); // This didn't work.
-		this.collection.bind('onFetch', this.render, this)
+		this.collection.bind('onFetch', this.render, this);
+		this.collection.on('selected', this.selectedModel, this);
 	},
 	render: function() {
 		//this.$el.empty();
@@ -113,17 +122,23 @@ var FoodListView = Backbone.View.extend({
 			ul.append(foodView.render().el);
 		});
 		return this;
+	},
+	selectedModel: function(model) {
+		console.log('model selected: ', model);
+	},
+	changeHandler: function() {
+		this.trigger('itemChanged');
 	}
 });
 
 var FoodNutriDataView = Backbone.View.extend({
 	el: $('#nutri-data'),
-	initialize: function() {
-		if(this.nameAndNo) {
-			this.$el.append(nameAndNo);
+	initialize: function(options) {
+		if(options) {
+			this.$el.append(options.nameAndNo);
 		}
 		_.bindAll(this, 'render');
-		this.model.bind('onFetch', this.render, this)
+		//this.model.bind('onFetch', this.render, this)
 
 	},
 	render: function() {
