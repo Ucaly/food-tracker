@@ -18,6 +18,9 @@ $(function() {
     var foodListView = new FoodListView({collection: foodList});
     var nutriDataModel = new FoodNutriDataModel();
     var nutriDataView = new FoodNutriDataView({model: nutriDataModel});
+    $('#calorie-btn').click(function(e) {
+    	
+    })
 });
 
 function executeSearch() {
@@ -33,8 +36,8 @@ function getNutriData() {
 var FoodNutriDataModel = Backbone.Model.extend({
 	url: 'http://api.nal.usda.gov/ndb/nutrients/?format=json&api_key=YXoenkBYZZbIlQ3ZQjX9NbkghRRQKuMOLrC4Wgzn&nutrients=208&ndbno=',
 	initialize: function() {
-		if(this.ndbno) {
-			this.url = this.url + this.ndbno;
+		if(this.attributes.ndbno) {
+			this.url = this.url + this.attributes.ndbno;
 		}
 	},
 	parse: function parse(res) {
@@ -74,7 +77,7 @@ var FoodView = Backbone.View.extend({
 	render: function() {
 		//console.log('food view rendering...')
 		//this.$el.empty();
-		this.$el.html(this.template(this.model.toJSON()));
+		this.$el.html(this.template(this.model.toJSON())).addClass('list-group-item');
 		//console.log(this.model.get('name'));  // This works.
 		//this.$el.html('<li>' + this.model.get('name') + ': ' + this.model.get('ndbno') + '</li>');
 		//this.$el.click(function(e) {
@@ -84,12 +87,16 @@ var FoodView = Backbone.View.extend({
 		return this;
 	},
 	showName: function(e) {
+		e.preventDefault();
 		this.model.trigger('selected', this.model);
 		//nutriDataView.$el.append(e.currentTarget.innerHTML);
 		//console.log('item clicked', e.currentTarget.innerHTML);
 		//var foodDataView = new FoodNutriDataView({nameAndNo: e.currentTarget.innerHTML});
 		var foodDataView = new FoodNutriDataView({nameAndNo:e.currentTarget.innerHTML});
-		//foodDataView.nameAndNo = e.currentTarget.innerHTML;
+
+		$that = $(this);
+		$that.parent().find('li').removeClass('active');
+		$that.addClass('active');
 	}
 });
 
@@ -124,7 +131,21 @@ var FoodListView = Backbone.View.extend({
 		return this;
 	},
 	selectedModel: function(model) {
-		console.log('model selected: ', model);
+		var selectedNo = model.get('ndbno');
+		//console.log('model selected: ', model.get('ndbno'));
+		var nutriDataModel = new FoodNutriDataModel({ndbno: selectedNo});
+		console.log(nutriDataModel);
+    	nutriDataModel.fetch({
+					success: function(res, options) {
+						//console.log("colleciton: ", collection);
+						console.log("res: ", res);
+						console.log("options: ", options);
+						//foodList.trigger('onFetch');
+					},
+					error: function() {
+
+					}}
+				);
 	},
 	changeHandler: function() {
 		this.trigger('itemChanged');
@@ -142,7 +163,7 @@ var FoodNutriDataView = Backbone.View.extend({
 
 	},
 	render: function() {
-
+		
 	}
 })
 
