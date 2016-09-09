@@ -2,7 +2,11 @@ $(function() {
     //var router = new Router();
     //Backbone.history.start();
 
+    var searchModel = new SearchModel();
+    var searchView = new SearchView({model: searchModel});
     var foodList = new FoodCollection();
+    	foodList.listenTo(searchModel, 'change', );
+
     foodList.fetch({data: $.param({q: 'apple'}),
 					success: function(collection, res, options) {
 						//console.log("colleciton: ", collection);
@@ -33,6 +37,12 @@ function getNutriData() {
 	
 }
 
+var SearchModel = Backbone.Model.extend({
+	defaults: {
+		searchTerm: ''
+	}
+});
+
 var FoodNutriDataModel = Backbone.Model.extend({
 	url: 'http://api.nal.usda.gov/ndb/nutrients/?format=json&api_key=YXoenkBYZZbIlQ3ZQjX9NbkghRRQKuMOLrC4Wgzn&nutrients=208&ndbno=',
 	initialize: function() {
@@ -52,8 +62,15 @@ var FoodModel = Backbone.Model.extend({
 var FoodCollection = Backbone.Collection.extend({
 	model: FoodModel,
 	defaults: {
-		foodName: ''
+		foodName: '',
+		searchModel: {}
 	},
+	initialize: function() {
+		this.listenTo(this.searchModel, 'chenge', startSearch);
+	},
+	startSearch: function() {
+		this.featch();
+	}
 	url: 'http://api.nal.usda.gov/ndb/search/?format=json&sort=n&max=25&offset=0&api_key=YXoenkBYZZbIlQ3ZQjX9NbkghRRQKuMOLrC4Wgzn',
 	parse: function parse(res) {
 		//console.log("item length: ", res.list.item.length);
@@ -61,6 +78,27 @@ var FoodCollection = Backbone.Collection.extend({
 	}
 });
 
+//  VIEWS
+
+var SearchView = Backbone.View.extend({
+	el: $('#search-food'),
+	events: {
+		'click button': 'setSearch'
+	},
+	initialize: function() {
+		this.render();
+	},
+	setSearch: function() {
+		var term = this.searchInput.val();
+		this.model.set({searchTerm: term});
+	},
+	render: function() {
+		this.searchInput = this.$('#search-text');
+		this.errorDlg = this.$('#error');
+		return this;
+	}
+
+});
 
 var FoodView = Backbone.View.extend({
 	tagName: 'li',
